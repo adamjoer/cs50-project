@@ -7,7 +7,7 @@
         <link rel="icon" href="/static/favicon.ico">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
         <link rel="stylesheet" href="/static/styles.css">
-        <title>CS50 Final Project</title>
+        <title>CS50 Final Project | {% block title %}{% endblock %}</title>
     </head>
     <body>
 
@@ -21,7 +21,7 @@
 
         <!-- Main content -->
         <div class="main">
-            {% block body %}
+            {% block main %}
             {% endblock %}
         </div>
     </body>
