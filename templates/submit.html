@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+
+{% block title %}
+    Submit
+{% endblock %}
+
+{% block main %}
+    <form action="/" method="post">
+        <div class="form-group">
+            <textarea name="textbox" id="textbox" cols="75" rows="25"></textarea>
+            <div id="count">
+                <p>500 characters left</p>
+            </div>
+        </div>
+        <button class="btn btn-primary" type="submit" id="submit">Submit</button>
+    </form>
+{% endblock %}
+
+{% block script %}
+    <script src="/static/textbox.js"></script>
+{% endblock %}

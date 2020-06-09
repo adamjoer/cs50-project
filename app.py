@@ -37,6 +37,20 @@ def hello():
     return render_template("hello.html")
 
 
+@app.route("/submit", methods=["GET", "POST"])
+@login_required
+def submit():
+    """Submit notes to database"""
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        return redirect("/")
+    
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:
+        return render_template("submit.html")
+
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     """Sign up user"""
@@ -133,6 +147,6 @@ def logout():
     return redirect("/")
 
 
-# Listen for errors
+# Check for errors
 for code in default_exceptions:
     app.errorhandler(code)(errorhandler)
