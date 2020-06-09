@@ -10,34 +10,38 @@
         <title>CS50 Final Project | {% block title %}{% endblock %}</title>
     </head>
     <body>
-
+        
         <!-- Sidebar -->
         <div class="sidenav">
             {% if session.user_id %}
-                <div class="id">
-                    <p><u>Welcome, {{ session.user_name }}</u></p>
-                    <a href="/logout">Log out</a>
-                </div>
+            <a href="/">Home</a>
+            <a href="/submit">Submit</a>
+            <div class="id">
+                <hr>
+                <p><u>Welcome, {{ session.user_name }}</u></p>
+                <a href="/logout">Log out</a>
+            </div>
             {% else %}
-                <a href="/signup">Sign up</a>
-                <a href="/login">Log in</a>
+            <a href="/signup">Sign up</a>
+            <a href="/login">Log in</a>
             {% endif %}
         </div>
-
+        
         {% if get_flashed_messages() %}
-            <header>
-                <div class="alert alert-primary border text-center" role="alert">
-                    {{ get_flashed_messages() | join(" ") }}
-                </div>
-            </header>
+        <header>
+            <div class="alert alert-primary border text-center" role="alert">
+                {{ get_flashed_messages() | join(" ") }}
+            </div>
+        </header>
         {% endif %}
-
+        
         <!-- Main content -->
-        <main class="container p-5">
+        <main class="p-5">
             <div class="main">
                 {% block main %}
                 {% endblock %}
             </div>
         </main>
+        {% block script %}{% endblock %}
     </body>
 </html>
