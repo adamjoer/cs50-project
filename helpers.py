@@ -4,6 +4,12 @@ from flask_session import sessions
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 
 
+def error(message, code=400):
+    """Render errror message to user."""
+
+    return render_template("error.html", code=code, message=message.capitalize()), code
+
+
 def login_required(f):
     """
     Decorate routes to require login.
@@ -16,7 +22,6 @@ def login_required(f):
             return redirect("/login")
         return f(*args, **kwargs)
     return decorated_function
-
 
 
 def errorhandler(e):

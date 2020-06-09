@@ -5,7 +5,7 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import login_required, errorhandler
+from helpers import error, login_required, errorhandler
 
 # Configure application
 app = Flask(__name__)
@@ -46,21 +46,21 @@ def signup():
 
         # Ensure username was submitted
         if not request.form.get("username"):
-            return render_template("error.html", code=400, message="Must provide username"), 400
+            return error("must provide username", 400)
 
         # Ensure that username is not already taken
         rows = db.execute("SELECT * FROM users WHERE username = :username", 
                           username=request.form.get("username"))
         if len(rows) != 0:
-            return render_template("error.html", code=409, message="Username already taken"), 409
+            return error("username already taken", 409)
 
         # Ensure password was submitted
         if not request.form.get("password"):
-            return render_template("error.html", code=400, message="must provide password"), 400
+            return error("must provide password", 400)
 
         # Ensure confirmation password matches password
         elif request.form.get("password") != request.form.get("confirmation"):
-            return render_template("error.html", code=403, message="confirmation password wrong"), 403
+            return error("confirmation password wrong", 403)
 
         # Insert username and hashed password into database
         db.execute("INSERT INTO users (username, hash) VALUES(:username, :hash)",
@@ -95,11 +95,11 @@ def login():
 
         # Ensure username was submitted
         if not request.form.get("username"):
-            return render_template("error.html", code=400, message="Must provide username"), 400
+            return error("must provide username", 400)
 
         # Ensure password was submitted
         elif not request.form.get("password"):
-            return render_template("error.html", code=400, message="Must provide password"), 400
+            return error("must provide password", 400)
 
         # Query database for username
         rows = db.execute("SELECT * FROM users WHERE username = :username",
@@ -107,7 +107,7 @@ def login():
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-            return render_template("error.html", code=403, message="invalid username and/or password"), 403
+            return error("invalid username and/or password", 403)
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
