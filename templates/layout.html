@@ -13,16 +13,31 @@
 
         <!-- Sidebar -->
         <div class="sidenav">
-            <a href="#">About</a>
-            <a href="#">Services</a>
-            <a href="#">Clients</a>
-            <a href="#">Contact</a>
+            {% if session.user_id %}
+                <div class="id">
+                    <p><u>Welcome, {{ session.user_name }}</u></p>
+                    <a href="/logout">Log out</a>
+                </div>
+            {% else %}
+                <a href="/signup">Sign up</a>
+                <a href="/login">Log in</a>
+            {% endif %}
         </div>
 
+        {% if get_flashed_messages() %}
+            <header>
+                <div class="alert alert-primary border text-center" role="alert">
+                    {{ get_flashed_messages() | join(" ") }}
+                </div>
+            </header>
+        {% endif %}
+
         <!-- Main content -->
-        <div class="main">
-            {% block main %}
-            {% endblock %}
-        </div>
+        <main class="container p-5">
+            <div class="main">
+                {% block main %}
+                {% endblock %}
+            </div>
+        </main>
     </body>
 </html>
