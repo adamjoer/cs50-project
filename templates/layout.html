@@ -19,7 +19,8 @@
             <div class="id">
                 <hr>
                 <p><u>Welcome, {{ session.user_name }}</u></p>
-                <a href="/logout">Log out</a>
+                <a href="/profile">Profile</a>
+                <a href="/logout">Log Out</a>
             </div>
             {% else %}
             <a href="/signup">Sign up</a>
@@ -38,8 +39,7 @@
         <!-- Main content -->
         <main class="p-5">
             <div class="main">
-                {% block main %}
-                {% endblock %}
+                {% block main %}{% endblock %}
             </div>
         </main>
         {% block script %}{% endblock %}

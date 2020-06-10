@@ -6,11 +6,11 @@
 {% endblock %}
 
 {% block main %}
-    <form action="/" method="post">
+    <form action="/submit" method="POST">
         <div class="form-group">
-            <textarea name="textbox" id="textbox" cols="75" rows="25"></textarea>
+            <textarea name="textbox" id="textbox" cols="75" rows="10"></textarea>
             <div id="count">
-                <p>500 characters left</p>
+                <p>1000 characters left</p>
             </div>
         </div>
         <button class="btn btn-primary" type="submit" id="submit">Submit</button>
@@ -18,5 +18,5 @@
 {% endblock %}
 
 {% block script %}
-    <script src="/static/textbox.js"></script>
+    <script src="/js/textbox.js"></script> <!-- Doesn't work, fucking 404 BULLSHIT. Only works in static folder for some fucking reason -->
 {% endblock %}
