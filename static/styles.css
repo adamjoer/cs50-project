@@ -49,6 +49,10 @@
     width: 300px;
 }
 
+.form-title {
+    margin-top: 3rem;
+}
+
 /* Style page content */
 main {
     margin-left: 300px; /* Same as the width of the sidebar */
