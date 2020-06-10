@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Profile
+{% endblock %}
+
+{% block main %}
+    <h1>Profile</h1>
+    <hr>
+
+    <h3 class="form-title">Change password</h3>
+    <form action="/profile" method="POST">
+        <div class="form-group">
+            <input autocomplete="off" autofocus class="form-control" name="oldPassword" placeholder="Old Password" type="password">
+        </div>
+        <div class="form-group">
+            <input class="form-control" name="newPassword" placeholder="New Password" type="password">
+        </div>
+        <div class="form-group">
+            <input class="form-control" name="confirmation" placeholder="Confirm New Password" type="password">
+        </div>
+        <button class="btn btn-primary" name="change" value="change" type="submit" id="change">Change Password</button>
+    </form>
+
+    <h3 class="form-title">Delete Profile</h3>
+    <form action="/profile" method="POST">
+        <div class="form-group">
+            <input type="checkbox" name="confirm" id="confirm">
+            <label for="confirm">I want to delete my profile from this website.</label>
+        </div>
+        <button class="btn btn-danger" name="delete" value="delete" type="submit" id="delete">Delete Profile</button>
+    </form>
+{% endblock %}
+
+
+{% block script %}
+    <script src="/js/failSafe.js"></script> <!-- Doesn't work, fucking 404 BULLSHIT. Only works in static folder for some fucking reason -->
+{% endblock %}
