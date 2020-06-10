@@ -1,35 +1,29 @@
-const text = document.querySelector('textarea');
+const text = document.querySelector("textarea");
 const limit = 1000;
 
 document.querySelector("#submit").disabled = true;
 
-text.addEventListener('input', characterCount);
+text.addEventListener("input", characterCount);
 
 function characterCount() {
-
     var count = limit - text.value.length;
     var isOver = true;
+    var control = " characters "
+    var msg = limit + control + "left";
 
-    
-    // console.log("Count: " + count)
-    if (count = 0) {
-        var control = "character";
-    } else {
-        var control = "characters";
-    };
-            
-    // WTF IS EVEN GOING ON HERE!?!
+    if (Math.abs(count) === 1) {
+        control = " character ";
+    }
 
-    if (text.value.length) {
+    if (text.value) {
         if (count < 0) {
-            document.querySelector('#count').innerHTML = (-count + " characters too many");
-            console.log((control + " too many"));
+            msg = Math.abs(count) + control + "too many";
             isOver = true;
         } else {
-            document.querySelector('#count').innerHTML = (count + " characters left");
-            console.log((control + " left"));
+            msg = count + control + "left";
             isOver = false;
         }
-    }  
-    document.querySelector('#submit').disabled = isOver;
+    }
+    document.querySelector("#count").innerHTML = (msg);
+    document.querySelector("#submit").disabled = isOver;
 }
