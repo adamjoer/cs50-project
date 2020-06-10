@@ -44,6 +44,18 @@ def submit():
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
+
+        if not (request.form.get("textbox")):
+            return error("must provide text", 400)
+        
+        text = request.form.get("textbox")
+
+        if len(text) > 1000:
+            return error("text too long", 403)
+
+        db.execute("INSERT INTO notes (user_id, text) VALUES(:user_id, :text)",
+                   user_id=session["user_id"], text=text)
+
         return redirect("/")
     
     # User reached route via GET (as by clicking a link or via redirect)
@@ -134,6 +146,43 @@ def login():
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("login.html")
+
+
+@app.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    """Manage user's profile"""
+
+    if request.method == "POST":
+
+        # User wants to change their password
+        if request.form.get("change"):
+
+            return redirect("/")
+            
+        # User wants to delete their profile
+        else:
+
+            if not request.form.get("confirm"):
+                return error("must confirm deletion", 403)
+
+            return redirect("/delete")
+
+    else:
+        return render_template("profile.html")
+
+
+@app.route("/delete", methods=["GET", "POST"])
+@login_required
+def delete():
+    """Delete user's profile from database"""
+
+    if request.method == "POST":
+
+        return redirect("/")
+
+    else:
+        return render_template("delete.html")
 
 
 @app.route("/logout")
