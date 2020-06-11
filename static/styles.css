@@ -73,3 +73,16 @@ main .form-control
     .sidenav {padding-top: 15px;}
     .sidenav a {font-size: 18px;}
 }
+
+#confirm {
+    margin-top: 2rem;
+}
+
+#yes {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+#no {
+    display: inline-block;
+}

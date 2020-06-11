@@ -74,12 +74,6 @@ def signup():
         if not request.form.get("username"):
             return error("must provide username", 400)
 
-        # Ensure that username is not already taken
-        rows = db.execute("SELECT * FROM users WHERE username = :username", 
-                          username=request.form.get("username"))
-        if len(rows) != 0:
-            return error("username already taken", 409)
-
         # Ensure password was submitted
         if not request.form.get("password"):
             return error("must provide password", 400)
@@ -87,6 +81,12 @@ def signup():
         # Ensure confirmation password matches password
         elif request.form.get("password") != request.form.get("confirmation"):
             return error("confirmation password wrong", 403)
+
+        # Ensure that username is not already taken
+        rows = db.execute("SELECT * FROM users WHERE username = :username", 
+                          username=request.form.get("username"))
+        if len(rows) != 0:
+            return error("username already taken", 409)
 
         # Insert username and hashed password into database
         db.execute("INSERT INTO users (username, hash) VALUES(:username, :hash)",
@@ -101,8 +101,8 @@ def signup():
         session["user_id"] = rows[0]["id"]
         session["user_name"] = rows[0]["username"]
 
-        # Redirect user to homepage
-        flash(f'User {request.form.get("username")} successfully registered!')
+        # Redirect user to home page
+        flash(f'User {request.form.get("username")} successfully registered')
         return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
@@ -153,21 +153,56 @@ def login():
 def profile():
     """Manage user's profile"""
 
+    # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
 
         # User wants to change their password
         if request.form.get("change"):
 
-            return redirect("/")
+            # Ensure old password was submitted
+            if not request.form.get("oldPassword"):
+                return error("must provide old password", 400)
             
+            # Ensure new password was submitted
+            if not request.form.get("newPassword"):
+                return error("must provide new password", 400)
+            
+            # Ensure confirmation password matches new password
+            if request.form.get("newPassword") != request.form.get("confirmation"):
+                return error("confirmation password wrong", 403)
+            
+            # Ensure new password is not the same as old password
+            if request.form.get("oldPassword") == request.form.get("newPassword"):
+                return error("new password must be different from old password", 409)
+
+            # Query database for user id
+            rows = db.execute("SELECT * FROM users WHERE id = :id",
+                            id=session["user_id"])
+
+            # Ensure user exists and password is correct
+            if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("oldPassword")):
+                return error("invalid password", 403)
+
+            # Update password
+            db.execute("UPDATE users SET hash = :hash WHERE id = :id",
+                       hash=generate_password_hash(request.form.get("newPassword"), method='pbkdf2:sha256', salt_length=8),
+                       id=session["user_id"])
+
+            # Redirect user to home page
+            flash('Password successfully changed')
+            return redirect("/")
+
         # User wants to delete their profile
         else:
 
+            # Ensure user confirmed deletion
             if not request.form.get("confirm"):
                 return error("must confirm deletion", 403)
 
+            # Redirect user to deletion page
             return redirect("/delete")
 
+    # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("profile.html")
 
@@ -177,10 +212,24 @@ def profile():
 def delete():
     """Delete user's profile from database"""
 
+    # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
 
-        return redirect("/")
+        # User wants to delete their profile
+        if request.form.get("yes"):
 
+            # Delete profile from database
+            db.execute("DELETE FROM users WHERE id = :id",
+                    id=session["user_id"])
+
+            # Log out user
+            return redirect("/logout")
+        
+        # User doesn't want to delete their profile
+        else:
+            return redirect("/")
+
+    # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("delete.html")
 
