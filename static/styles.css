@@ -53,6 +53,10 @@
     margin-top: 3rem;
 }
 
+.timestamp {
+    font-style: italic;
+}
+
 /* Style page content */
 main {
     margin-left: 300px; /* Same as the width of the sidebar */
