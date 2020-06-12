@@ -59,7 +59,7 @@ def submit():
             return error("text length invalid", 403)
 
         # Insert note into database
-        note_id = db.execute("INSERT INTO notes (author, text) VALUES(:user_name, :text)",
+        note_id = db.execute("INSERT INTO notes (author, text, timestamp) VALUES(:user_name, :text, datetime('now', '+2 hours'))",
                              user_name=session["user_name"], text=text)
 
         if not note_id:
@@ -106,7 +106,7 @@ def signup():
         if not db.execute("INSERT INTO users (username, hash) VALUES(:username, :hash)",
                           username=request.form.get("username"), 
                           hash=generate_password_hash(request.form.get("password"), method='pbkdf2:sha256', salt_length=8)):
-            return error("failed to save account to database", 500)
+            return error("failed to save profile to database", 500)
 
         # Ensure user is in database
         rows = db.execute("SELECT * FROM users WHERE username = :username",
