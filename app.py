@@ -30,15 +30,16 @@ Session(app)
 # Configure CS50 Library to use SQLite database
 db = SQL("sqlite:///final.db")
 
+
 @app.route("/")
 @login_required
 def hello():
     """Default start page"""
 
-    # rows = db.execute("SELECT author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id)",
-    #                   id=session["user_id"])
+    rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id) ORDER BY timestamp DESC",
+                      id=session["user_id"])
 
-    return render_template("hello.html")
+    return render_template("hello.html", rows=rows)
 
 
 @app.route("/submit", methods=["GET", "POST"])
