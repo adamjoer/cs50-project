@@ -34,6 +34,10 @@ db = SQL("sqlite:///final.db")
 @login_required
 def hello():
     """Default start page"""
+
+    # rows = db.execute("SELECT author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id)",
+    #                   id=session["user_id"])
+
     return render_template("hello.html")
 
 
@@ -45,16 +49,25 @@ def submit():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
 
+        # Ensure text was submitted
         if not (request.form.get("textbox")):
             return error("must provide text", 400)
-        
         text = request.form.get("textbox")
 
-        if len(text) > 1000:
-            return error("text too long", 403)
+        # Ensure text isn't too short or too long
+        if len(text) <= 0 or len(text) > 1000:
+            return error("text length invalid", 403)
 
-        db.execute("INSERT INTO notes (user_id, text) VALUES(:user_id, :text)",
-                   user_id=session["user_id"], text=text)
+        # Insert note into database
+        note_id = db.execute("INSERT INTO notes (author, text) VALUES(:user_name, :text)",
+                             user_name=session["user_name"], text=text)
+
+        if not note_id:
+            return error("failed to save note to database", 500)
+
+        if not db.execute("INSERT INTO participants (note_id, user_id) VALUES (:note_id, :user_id)",
+                          note_id=note_id, user_id=session["user_id"]):
+            return error("failed to save access to note", 500)
 
         return redirect("/")
     
@@ -85,13 +98,15 @@ def signup():
         # Ensure that username is not already taken
         rows = db.execute("SELECT * FROM users WHERE username = :username", 
                           username=request.form.get("username"))
+
         if len(rows) != 0:
             return error("username already taken", 409)
 
         # Insert username and hashed password into database
-        db.execute("INSERT INTO users (username, hash) VALUES(:username, :hash)",
-                   username=request.form.get("username"), 
-                   hash=generate_password_hash(request.form.get("password"), method='pbkdf2:sha256', salt_length=8))
+        if not db.execute("INSERT INTO users (username, hash) VALUES(:username, :hash)",
+                          username=request.form.get("username"), 
+                          hash=generate_password_hash(request.form.get("password"), method='pbkdf2:sha256', salt_length=8)):
+            return error("failed to save account to database", 500)
 
         # Ensure user is in database
         rows = db.execute("SELECT * FROM users WHERE username = :username",
@@ -102,7 +117,7 @@ def signup():
         session["user_name"] = rows[0]["username"]
 
         # Redirect user to home page
-        flash(f'User {request.form.get("username")} successfully registered')
+        flash(f'User "{request.form.get("username")}" successfully registered')
         return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
@@ -184,9 +199,10 @@ def profile():
                 return error("invalid password", 403)
 
             # Update password
-            db.execute("UPDATE users SET hash = :hash WHERE id = :id",
-                       hash=generate_password_hash(request.form.get("newPassword"), method='pbkdf2:sha256', salt_length=8),
-                       id=session["user_id"])
+            if (db.execute("UPDATE users SET hash = :hash WHERE id = :id",
+                           hash=generate_password_hash(request.form.get("newPassword"), method='pbkdf2:sha256', salt_length=8),
+                           id=session["user_id"])) == 0:
+                return error("failed to update password", 500)
 
             # Redirect user to home page
             flash('Password successfully changed')
@@ -218,17 +234,18 @@ def delete():
         # User is sure they want to delete their profile
         if request.form.get("submit") == "yes":
 
-            # Delete user's shares from database
-            db.execute("DELETE FROM shares JOIN notes ON shares.note_id = notes.id JOIN users ON notes.user_id = users.id WHERE id = :id",
-                       id=session["user_id"])
+            # Delete access to notes authored by profile
+            db.execute("DELETE FROM participants WHERE note_id IN (SELECT id FROM notes WHERE author = :user_name)",
+                       user_name=session["user_name"])
 
-            # Delete user's notes from database
-            db.execute("DELETE FROM notes JOIN users ON notes.user_id = users.id WHERE id = :id",
-                       id=session["user_id"])
+            # Delete notes authored by profile
+            db.execute("DELETE FROM notes WHERE author = :user_name)",
+                       user_name=session["user_name"])
 
-            # Delete profile from database
-            db.execute("DELETE FROM users WHERE id = :id",
-                    id=session["user_id"])
+            # Delete profile
+            if (db.execute("DELETE FROM users WHERE id = :id",
+                           id=session["user_id"])) == 0:
+                return error("failed to delete profile", 500)
 
             # Log out user
             return redirect("/logout")
