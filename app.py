@@ -157,7 +157,7 @@ def profile():
     if request.method == "POST":
 
         # User wants to change their password
-        if request.form.get("change"):
+        if request.form.get("submit") == "change":
 
             # Ensure old password was submitted
             if not request.form.get("oldPassword"):
@@ -215,8 +215,16 @@ def delete():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
 
-        # User wants to delete their profile
-        if request.form.get("yes"):
+        # User is sure they want to delete their profile
+        if request.form.get("submit") == "yes":
+
+            # Delete user's shares from database
+            db.execute("DELETE FROM shares JOIN notes ON shares.note_id = notes.id JOIN users ON notes.user_id = users.id WHERE id = :id",
+                       id=session["user_id"])
+
+            # Delete user's notes from database
+            db.execute("DELETE FROM notes JOIN users ON notes.user_id = users.id WHERE id = :id",
+                       id=session["user_id"])
 
             # Delete profile from database
             db.execute("DELETE FROM users WHERE id = :id",
