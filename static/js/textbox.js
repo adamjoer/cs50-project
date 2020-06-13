@@ -8,22 +8,21 @@ text.addEventListener("input", characterCount);
 function characterCount() {
     var count = limit - text.value.length;
     var isOver = true;
-    var control = " characters "
-    var msg = limit + control + "left";
+    var control1 = "characters"
+    var control2 = "left";
 
     if (Math.abs(count) === 1) {
-        control = " character ";
+        control1 = "character";
     }
 
     if (text.value) {
         if (count < 0) {
-            msg = Math.abs(count) + control + "too many";
-            isOver = true;
+            count = Math.abs(count);
+            control2 = "too many";
         } else {
-            msg = count + control + "left";
             isOver = false;
         }
     }
-    document.querySelector("#count").innerHTML = (msg);
+    document.querySelector("#count").innerHTML = `${count} ${control1} ${control2}`;
     document.querySelector("#submit").disabled = isOver;
 }
