@@ -18,7 +18,8 @@ Hello
         {% for i in range(row["text"].splitlines()|length) %}
             <p>{{ row["text"].splitlines()[i] }}</p>
         {% endfor %}
-        <a id="delete{{ row['id'] }}" href="#" onclick="deletenote(this); return false">Delete</a>
+
+        <a id="{{ row['id'] }}" href="#" onclick="deletenote(this); return false">Delete</a>
 
         <hr>
     {% endfor %}

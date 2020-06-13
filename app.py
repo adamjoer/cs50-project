@@ -64,17 +64,63 @@ def submit():
                              user_name=session["user_name"], text=text)
 
         if not note_id:
-            return error("failed to save note to database", 500)
+            return error("failed to save note to database", 503)
 
         if not db.execute("INSERT INTO participants (note_id, user_id) VALUES (:note_id, :user_id)",
                           note_id=note_id, user_id=session["user_id"]):
-            return error("failed to save access to note", 500)
+            return error("failed to save access to note", 503)
 
         return redirect("/")
     
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("submit.html")
+
+
+@app.route("/deletenote")
+@login_required
+def deletenote():
+    """Delete note"""
+
+    # Ensure note ID was submitted
+    if not request.args.get("note_id"):
+        return error("must provide note ID", 400)
+
+    note_id = int(request.args.get("note_id"))
+
+    # Ensure note exists
+    rows = db.execute("SELECT * FROM notes WHERE id = :note_id",
+                      note_id=note_id)
+
+    if len(rows) != 1:
+        return error("note not found", 404)
+    
+    rows = db.execute("SELECT * FROM participants WHERE note_id = :note_id",
+                      note_id=note_id)
+
+    # Ensure user has access to note
+    hasAccess = False
+    for row in rows:
+        if row["user_id"] == session["user_id"]:
+            hasAccess = True
+            break
+
+    if hasAccess == False:
+        return error("cannot delete note without having access to it", 403)
+
+    # Delete access to note
+    if db.execute("DELETE FROM participants WHERE note_id = :note_id AND user_id = :user_id",
+                  note_id=note_id, user_id=session["user_id"]) == 0:
+        return error("failed to delete access to note", 503)
+
+    # If user is only profile with access to note, delete note
+    if len(rows) == 1:
+        if db.execute("DELETE FROM notes WHERE id = :note_id",
+                      note_id=note_id) == 0:
+            return error("failed to delete note", 503)
+
+    # Redirect user to homepage
+    return redirect("/")
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -107,7 +153,7 @@ def signup():
         if not db.execute("INSERT INTO users (username, hash) VALUES(:username, :hash)",
                           username=request.form.get("username"), 
                           hash=generate_password_hash(request.form.get("password"), method='pbkdf2:sha256', salt_length=8)):
-            return error("failed to save profile to database", 500)
+            return error("failed to save profile to database", 503)
 
         # Ensure user is in database
         rows = db.execute("SELECT * FROM users WHERE username = :username",
@@ -203,7 +249,7 @@ def profile():
             if (db.execute("UPDATE users SET hash = :hash WHERE id = :id",
                            hash=generate_password_hash(request.form.get("newPassword"), method='pbkdf2:sha256', salt_length=8),
                            id=session["user_id"])) == 0:
-                return error("failed to update password", 500)
+                return error("failed to update password", 503)
 
             # Redirect user to home page
             flash('Password successfully changed')
@@ -246,7 +292,7 @@ def delete():
             # Delete profile
             if (db.execute("DELETE FROM users WHERE id = :id",
                            id=session["user_id"])) == 0:
-                return error("failed to delete profile", 500)
+                return error("failed to delete profile", 503)
 
             # Log out user
             return redirect("/logout")

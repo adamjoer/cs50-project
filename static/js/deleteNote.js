@@ -1,3 +1,5 @@
 function deletenote(el) {
-    el.innerHTML = "Are you sure you want to delete this note?"
+    el.innerHTML = "Delete note?";
+    el.setAttribute("href", `/deletenote?note_id=${el.id}`);
+    el.removeAttribute("onclick");
 }
