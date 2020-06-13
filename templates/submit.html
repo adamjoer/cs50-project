@@ -6,17 +6,23 @@
 {% endblock %}
 
 {% block main %}
+    <script src=""></script>
     <form action="/submit" method="POST">
         <div class="form-group">
-            <textarea name="textbox" id="textbox" cols="75" rows="10"></textarea>
+            <textarea name="textbox" id="textbox" placeholder="Write your note here" cols="75" rows="10"></textarea>
             <div id="count">
                 <p>1000 characters left</p>
             </div>
         </div>
+        <div class="form-group">
+            <a id="sharebutton" href="#" onclick="shareNote('sharebutton', 'shareform'); return false">Share note</a>
+            <div id="shareform" style="display: none;">
+                <input autocomplete="off" autofocus class="form-control" name="share" id="share" placeholder="Share your note" type="text" maxlength="50">
+                <label for="share">Write the username of the profile you want to share this note with. If you want to share with several profiles, write each username seperated by a space.</label>
+            </div>
+        </div>
         <button class="btn btn-primary" type="submit" id="submit">Submit</button>
     </form>
-{% endblock %}
-
-{% block script %}
     <script src="/static/js/textbox.js"></script>
+    <script src="/static/js/shareNote.js"></script>
 {% endblock %}
