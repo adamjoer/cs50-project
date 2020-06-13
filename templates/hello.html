@@ -6,17 +6,20 @@ Hello
 
 {% block main %}
     <script src="/static/js/moment.min.js"></script>
+    <script src="/static/js/deleteNote.js"></script>
     <h1>Welcome to my final project</h1>
 
     {% for row in rows %}
         <p><u>{{ row["author"] }}</u></p>
-        <p class="timestamp" id="{{ row['id'] }}"><i>{{ row["timestamp"] }}</i></p>
+        <p class="timestamp" id="time{{ row['id'] }}"><i>{{ row["timestamp"] }}</i></p>
         <script>
-            document.getElementById("{{ row['id'] }}").innerHTML = moment("{{ row['timestamp'] }}").fromNow();
+            document.getElementById("time{{ row['id'] }}").innerHTML = moment("{{ row['timestamp'] }}").fromNow();
         </script>
         {% for i in range(row["text"].splitlines()|length) %}
             <p>{{ row["text"].splitlines()[i] }}</p>
         {% endfor %}
+        <a id="delete{{ row['id'] }}" href="#" onclick="deletenote(this); return false">Delete</a>
+
         <hr>
     {% endfor %}
 
