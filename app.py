@@ -33,13 +33,15 @@ db = SQL("sqlite:///final.db")
 
 @app.route("/")
 @login_required
-def hello():
-    """Default start page"""
+def index():
+    """Show index of user's notes"""
 
+    # Query database for user's notes
     rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id) ORDER BY timestamp DESC",
                       id=session["user_id"])
 
-    return render_template("hello.html", rows=rows)
+    # Render page with user's notes
+    return render_template("index.html", rows=rows)
 
 
 @app.route("/submit", methods=["GET", "POST"])
@@ -66,12 +68,22 @@ def submit():
         if not note_id:
             return error("failed to save note to database", 503)
 
+        # Give access to user
         if not db.execute("INSERT INTO participants (note_id, user_id) VALUES (:note_id, :user_id)",
                           note_id=note_id, user_id=session["user_id"]):
             return error("failed to save access to note", 503)
 
+        # User wants to share note with other profiles
+        if request.form.get("share"):
+
+            # Call share function
+            count = share(request.form.get("share"), note_id)
+
+            # Notify how many profiles note was shared with
+            flash(f'Note shared with {count} other profiles')
+
         return redirect("/")
-    
+
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("submit.html")
@@ -89,14 +101,11 @@ def deletenote():
     note_id = int(request.args.get("note_id"))
 
     # Ensure note exists
-    rows = db.execute("SELECT * FROM notes WHERE id = :note_id",
+    rows = db.execute("SELECT * FROM participants WHERE note_id = :note_id",
                       note_id=note_id)
 
     if len(rows) != 1:
         return error("note not found", 404)
-    
-    rows = db.execute("SELECT * FROM participants WHERE note_id = :note_id",
-                      note_id=note_id)
 
     # Ensure user has access to note
     hasAccess = False
@@ -134,6 +143,10 @@ def signup():
         if not request.form.get("username"):
             return error("must provide username", 400)
 
+        # Ensure username is not too short or too long
+        if len(request.form.get("username")) < 4 or len(request.form.get("username")) > 20:
+            return error("username length invalid", 403)
+
         # Ensure password was submitted
         if not request.form.get("password"):
             return error("must provide password", 400)
@@ -143,7 +156,7 @@ def signup():
             return error("confirmation password wrong", 403)
 
         # Ensure that username is not already taken
-        rows = db.execute("SELECT * FROM users WHERE username = :username", 
+        rows = db.execute("SELECT * FROM users WHERE username = :username",
                           username=request.form.get("username"))
 
         if len(rows) != 0:
@@ -151,7 +164,7 @@ def signup():
 
         # Insert username and hashed password into database
         if not db.execute("INSERT INTO users (username, hash) VALUES(:username, :hash)",
-                          username=request.form.get("username"), 
+                          username=request.form.get("username"),
                           hash=generate_password_hash(request.form.get("password"), method='pbkdf2:sha256', salt_length=8)):
             return error("failed to save profile to database", 503)
 
@@ -224,15 +237,15 @@ def profile():
             # Ensure old password was submitted
             if not request.form.get("oldPassword"):
                 return error("must provide old password", 400)
-            
+
             # Ensure new password was submitted
             if not request.form.get("newPassword"):
                 return error("must provide new password", 400)
-            
+
             # Ensure confirmation password matches new password
             if request.form.get("newPassword") != request.form.get("confirmation"):
                 return error("confirmation password wrong", 403)
-            
+
             # Ensure new password is not the same as old password
             if request.form.get("oldPassword") == request.form.get("newPassword"):
                 return error("new password must be different from old password", 409)
@@ -246,9 +259,9 @@ def profile():
                 return error("invalid password", 403)
 
             # Update password
-            if (db.execute("UPDATE users SET hash = :hash WHERE id = :id",
+            if db.execute("UPDATE users SET hash = :hash WHERE id = :id",
                            hash=generate_password_hash(request.form.get("newPassword"), method='pbkdf2:sha256', salt_length=8),
-                           id=session["user_id"])) == 0:
+                           id=session["user_id"]) == 0:
                 return error("failed to update password", 503)
 
             # Redirect user to home page
@@ -279,24 +292,24 @@ def delete():
     if request.method == "POST":
 
         # User is sure they want to delete their profile
-        if request.form.get("submit") == "yes":
+        if request.form.get("confirm") == "yes":
 
             # Delete access to notes authored by profile
             db.execute("DELETE FROM participants WHERE note_id IN (SELECT id FROM notes WHERE author = :user_name)",
                        user_name=session["user_name"])
 
             # Delete notes authored by profile
-            db.execute("DELETE FROM notes WHERE author = :user_name)",
+            db.execute("DELETE FROM notes WHERE author = :user_name",
                        user_name=session["user_name"])
 
             # Delete profile
-            if (db.execute("DELETE FROM users WHERE id = :id",
-                           id=session["user_id"])) == 0:
+            if db.execute("DELETE FROM users WHERE id = :id",
+                           id=session["user_id"]) == 0:
                 return error("failed to delete profile", 503)
 
             # Log out user
             return redirect("/logout")
-        
+
         # User doesn't want to delete their profile
         else:
             return redirect("/")
@@ -315,6 +328,59 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
+
+
+def share(usernames, note_id):
+    """Share note with other users"""
+
+    # Ensure all arguments was submitted
+    if not usernames:
+        return 0
+
+    if not note_id:
+        return 0
+
+    # Seperate usernames by space
+    usernames = usernames.split(sep=" ")
+
+    # Iterate over usernames
+    count = 0
+    for username in usernames:
+
+        # Ensure username has valid length
+        if len(username) > 4 or len(username) < 20:
+            continue
+
+        # Ensure username is not current user's username
+        if username == session["user_name"]:
+            continue
+
+        # Ensure profile actually exists
+        rows = db.execute("SELECT * FROM users WHERE username = :username")
+
+        if len(rows) != 1:
+            continue
+
+        # Save user ID
+        user_id = rows[0]["id"]
+
+        # Ensure profile doesn't already have access to note
+        rows = db.execute("SELECT * FROM participants WHERE note_id = :note_id AND user_id = :user_id",
+                                note_id=note_id, user_id=user_id)
+
+        if len(rows) != 0:
+            continue
+
+        # Share note with profile
+        if not db.execute("INSERT INTO participants (note_id, user_id) VALUES (:note_id, :user_id)",
+                    note_id=note_id, user_id=user_id):
+            return error("failed to share note with user", 503)
+
+        # Count how many profiles note was shared with
+        count += 1
+
+    # Return that count
+    return count
 
 
 # Check for errors
