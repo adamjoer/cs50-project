@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block title %}
-Hello
+    Home
 {% endblock %}
 
 {% block main %}
@@ -11,7 +11,7 @@ Hello
 
     {% for row in rows %}
         <p><u>{{ row["author"] }}</u></p>
-        <p class="timestamp" id="time{{ row['id'] }}"><i>{{ row["timestamp"] }}</i></p>
+        <p title="{{ row['timestamp'] }}" class="timestamp" id="time{{ row['id'] }}"><i>{{ row["timestamp"] }}</i></p>
         <script>
             document.getElementById("time{{ row['id'] }}").innerHTML = moment("{{ row['timestamp'] }}").fromNow();
         </script>
@@ -24,7 +24,4 @@ Hello
         <hr>
     {% endfor %}
 
-{% endblock %}
-
-{% block script %}
 {% endblock %}
