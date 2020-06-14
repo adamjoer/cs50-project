@@ -17,9 +17,9 @@
             document.getElementById("time{{ rows[i][id] }}").innerHTML = moment("{{ rows[i]['timestamp'] }}").fromNow();
         </script>
 
-        {% if notes_data[i]["shares"] != 1 %}
-            <p id="sharecount{{ rows[i][id] }}" onclick="shareNote('sharecount{{ rows[i][id] }}', 'sharenames{{ rows[i][id] }}'); return false">Shared with {{ notes_data[i]["shares"] - 1 }} other profile(s)</p>
-            <p id="sharenames{{ rows[i][id] }}" style="display: none;">Shared with {{ notes_data[i]["shares"] - 1 }} other profile(s): {{ notes_data[i]["usernames"] }}</p>
+        {% if share_data[i]["shares"] != 1 %}
+            <p id="sharecount{{ rows[i][id] }}" onclick="shareNote('sharecount{{ rows[i][id] }}', 'sharenames{{ rows[i][id] }}'); return false">Shared with {{ share_data[i]["shares"] - 1 }} other profile(s)</p>
+            <p id="sharenames{{ rows[i][id] }}" style="display: none;">Shared with {{ share_data[i]["shares"] - 1 }} other profile(s): {{ share_data[i]["usernames"] }}</p>
         {% endif %}
 
         {% for j in range(rows[i]["text"].splitlines()|length) %}

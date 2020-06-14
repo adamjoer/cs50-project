@@ -61,16 +61,12 @@ def index():
         rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id) ORDER BY timestamp DESC",
                         id=session["user_id"])
 
-        # Make list with note IDs
-        notes_data = list()
-        # notes_id = list()
-        # shares_count = list()
+        # Make list of data about note
+        share_data = list()
 
         for row in rows:
-            # notes_id.append(row["id"])
             shares = db.execute("SELECT username FROM users WHERE id in (SELECT user_id FROM participants WHERE note_id = :note_id)",
                              note_id=row["id"])
-            # shares_count.append(len(shares))
 
             usernames = ""
             for sharerow in shares:
@@ -79,12 +75,10 @@ def index():
                         usernames += ", "
                     usernames += sharerow["username"]
             
-            notes_data.append({"shares":len(shares), "usernames":usernames})
-
-        # note_id="note_id"
+            share_data.append({"shares":len(shares), "usernames":usernames})
 
         # Render page with user's notes
-        return render_template("index.html", rows=rows, notes_data=notes_data, id="id")
+        return render_template("index.html", rows=rows, share_data=share_data, id="id")
 
 
 @app.route("/submit", methods=["GET", "POST"])
