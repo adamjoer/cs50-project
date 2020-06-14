@@ -7,19 +7,31 @@
 {% block main %}
     <script src="/static/js/moment.min.js"></script>
     <script src="/static/js/deleteNote.js"></script>
+    <script src="/static/js/shareNote.js"></script>
     <h1>Welcome to my final project</h1>
 
-    {% for row in rows %}
-        <p><u>{{ row["author"] }}</u></p>
-        <p title="{{ row['timestamp'] }}" class="timestamp" id="time{{ row['id'] }}"><i>{{ row["timestamp"] }}</i></p>
+    {% for i in range(rows|length) %}
+        <p><u>{{ rows[i]["author"] }}</u></p>
+        <p title="{{ rows[i]['timestamp'] }}" class="timestamp" id="time{{ notes_id[i] }}"><i>{{ rows[i]["timestamp"] }}</i></p>
         <script>
-            document.getElementById("time{{ row['id'] }}").innerHTML = moment("{{ row['timestamp'] }}").fromNow();
+            document.getElementById("time{{ notes_id[i] }}").innerHTML = moment("{{ rows[i]['timestamp'] }}").fromNow();
         </script>
-        {% for i in range(row["text"].splitlines()|length) %}
-            <p>{{ row["text"].splitlines()[i] }}</p>
+        {% for j in range(rows[i]["text"].splitlines()|length) %}
+            <p>{{ rows[i]["text"].splitlines()[j] }}</p>
         {% endfor %}
 
-        <a id="{{ row['id'] }}" href="#" onclick="deletenote(this); return false">Delete</a>
+        <form action="/" method="POST">
+            <div class="form-group">
+                <a id="sharebutton{{ notes_id[i] }}" href="#" onclick="shareNote('sharebutton{{ notes_id[i] }}', 'shareform{{ notes_id[i] }}'); return false">Share</a>
+                <div id="shareform{{ notes_id[i] }}" style="display: none;">
+                    <input autocomplete="off" autofocus class="form-control" name="share" id="share" placeholder="Share your note" type="text" maxlength="50">
+                    <label for="share">Write the username of the profile you want to share this note with. If you want to share with several profiles, write each username seperated by a space.</label>
+                    <button class="btn btn-primary" type="submit" name="note_id" value="{{ notes_id[i] }}">Share</button>
+                </div>
+            </div>
+        </form>
+
+        <a id="{{ notes_id[i] }}" href="#" onclick="deletenote(this); return false">Delete</a>
 
         <hr>
     {% endfor %}

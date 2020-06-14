@@ -31,17 +31,39 @@ Session(app)
 db = SQL("sqlite:///final.db")
 
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
     """Show index of user's notes"""
 
-    # Query database for user's notes
-    rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id) ORDER BY timestamp DESC",
-                      id=session["user_id"])
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        
+        if not request.form.get("share"):
+            return error("must provide usernames", 400)
+        
+        if not request.form.get("note_id"):
+            return error("must provide note ID", 400)
 
-    # Render page with user's notes
-    return render_template("index.html", rows=rows)
+        count = share(request.form.get("share"), request.form.get("note_id"))
+
+        flash(f'Note shared with {count} other profiles')
+        return redirect("/")
+
+    # User reached route via GET (as by clicking a link or via redirect)
+    else:
+
+        # Query database for user's notes
+        rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id) ORDER BY timestamp DESC",
+                        id=session["user_id"])
+
+        notes_id = list()
+
+        for row in rows:
+            notes_id.append(row['id'])
+
+        # Render page with user's notes
+        return render_template("index.html", rows=rows, notes_id=notes_id)
 
 
 @app.route("/submit", methods=["GET", "POST"])
