@@ -38,15 +38,19 @@ def index():
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
-        
+
+        # Ensure usernames was submitted
         if not request.form.get("share"):
             return error("must provide usernames", 400)
-        
+
+        # Ensure note ID was submitted
         if not request.form.get("note_id"):
             return error("must provide note ID", 400)
 
+        # Call share function to share note
         count = share(request.form.get("share"), request.form.get("note_id"))
 
+        # Notify user how many profiles note was shared with
         flash(f'Note shared with {count} other profiles')
         return redirect("/")
 
@@ -57,6 +61,7 @@ def index():
         rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id) ORDER BY timestamp DESC",
                         id=session["user_id"])
 
+        # Make list with note IDs
         notes_id = list()
 
         for row in rows:
@@ -101,7 +106,7 @@ def submit():
             # Call share function
             count = share(request.form.get("share"), note_id)
 
-            # Notify how many profiles note was shared with
+            # Notify user how many profiles note was shared with
             flash(f'Note shared with {count} other profiles')
 
         return redirect("/")
