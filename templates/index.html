@@ -12,26 +12,32 @@
 
     {% for i in range(rows|length) %}
         <p><u>{{ rows[i]["author"] }}</u></p>
-        <p title="{{ rows[i]['timestamp'] }}" class="timestamp" id="time{{ notes_id[i] }}"><i>{{ rows[i]["timestamp"] }}</i></p>
+        <p title="{{ rows[i]['timestamp'] }}" class="timestamp" id="time{{ rows[i][id] }}"><i>{{ rows[i]["timestamp"] }}</i></p>
         <script>
-            document.getElementById("time{{ notes_id[i] }}").innerHTML = moment("{{ rows[i]['timestamp'] }}").fromNow();
+            document.getElementById("time{{ rows[i][id] }}").innerHTML = moment("{{ rows[i]['timestamp'] }}").fromNow();
         </script>
+
+        {% if notes_data[i]["shares"] != 1 %}
+            <p id="sharecount{{ rows[i][id] }}" onclick="shareNote('sharecount{{ rows[i][id] }}', 'sharenames{{ rows[i][id] }}'); return false">Shared with {{ notes_data[i]["shares"] - 1 }} other profile(s)</p>
+            <p id="sharenames{{ rows[i][id] }}" style="display: none;">Shared with {{ notes_data[i]["shares"] - 1 }} other profile(s): {{ notes_data[i]["usernames"] }}</p>
+        {% endif %}
+
         {% for j in range(rows[i]["text"].splitlines()|length) %}
             <p>{{ rows[i]["text"].splitlines()[j] }}</p>
         {% endfor %}
 
         <form action="/" method="POST">
             <div class="form-group">
-                <a id="sharebutton{{ notes_id[i] }}" href="#" onclick="shareNote('sharebutton{{ notes_id[i] }}', 'shareform{{ notes_id[i] }}'); return false">Share</a>
-                <div id="shareform{{ notes_id[i] }}" style="display: none;">
+                <a id="sharebutton{{ rows[i][id] }}" href="#" onclick="shareNote('sharebutton{{ rows[i][id] }}', 'shareform{{ rows[i][id] }}'); return false">Share</a>
+                <div id="shareform{{ rows[i][id] }}" style="display: none;">
                     <input autocomplete="off" autofocus class="form-control" name="share" id="share" placeholder="Share your note" type="text" maxlength="50">
-                    <label for="share">Write the username of the profile you want to share this note with. If you want to share with several profiles, write each username seperated by a space.</label>
-                    <button class="btn btn-primary" type="submit" name="note_id" value="{{ notes_id[i] }}">Share</button>
+                    <!-- <label for="share">Write the username of the profile you want to share this note with. If you want to share with several profiles, write each username seperated by a space.</label> -->
+                    <button class="btn btn-primary" type="submit" name="note_id" value="{{ rows[i][id] }}">Share</button>
                 </div>
             </div>
         </form>
 
-        <a id="{{ notes_id[i] }}" href="#" onclick="deletenote(this); return false">Delete</a>
+        <a id="{{ rows[i][id] }}" href="#" onclick="deletenote(this); return false">Delete</a>
 
         <hr>
     {% endfor %}

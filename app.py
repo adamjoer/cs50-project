@@ -62,13 +62,29 @@ def index():
                         id=session["user_id"])
 
         # Make list with note IDs
-        notes_id = list()
+        notes_data = list()
+        # notes_id = list()
+        # shares_count = list()
 
         for row in rows:
-            notes_id.append(row['id'])
+            # notes_id.append(row["id"])
+            shares = db.execute("SELECT username FROM users WHERE id in (SELECT user_id FROM participants WHERE note_id = :note_id)",
+                             note_id=row["id"])
+            # shares_count.append(len(shares))
+
+            usernames = ""
+            for sharerow in shares:
+                if sharerow["username"] != session["user_name"]:
+                    if len(usernames) != 0:
+                        usernames += ", "
+                    usernames += sharerow["username"]
+            
+            notes_data.append({"shares":len(shares), "usernames":usernames})
+
+        # note_id="note_id"
 
         # Render page with user's notes
-        return render_template("index.html", rows=rows, notes_id=notes_id)
+        return render_template("index.html", rows=rows, notes_data=notes_data, id="id")
 
 
 @app.route("/submit", methods=["GET", "POST"])
