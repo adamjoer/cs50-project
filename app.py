@@ -104,7 +104,7 @@ def deletenote():
     rows = db.execute("SELECT * FROM participants WHERE note_id = :note_id",
                       note_id=note_id)
 
-    if len(rows) != 1:
+    if len(rows) == 0:
         return error("note not found", 404)
 
     # Ensure user has access to note
@@ -144,7 +144,7 @@ def signup():
             return error("must provide username", 400)
 
         # Ensure username is not too short or too long
-        if len(request.form.get("username")) < 4 or len(request.form.get("username")) > 20:
+        if len(request.form.get("username")) < 4 or len(request.form.get("username")) > 40:
             return error("username length invalid", 403)
 
         # Ensure password was submitted
@@ -348,7 +348,7 @@ def share(usernames, note_id):
     for username in usernames:
 
         # Ensure username has valid length
-        if len(username) > 4 or len(username) < 20:
+        if len(username) < 4 or len(username) > 40:
             continue
 
         # Ensure username is not current user's username
@@ -356,7 +356,8 @@ def share(usernames, note_id):
             continue
 
         # Ensure profile actually exists
-        rows = db.execute("SELECT * FROM users WHERE username = :username")
+        rows = db.execute("SELECT * FROM users WHERE username = :username",
+                          username=username)
 
         if len(rows) != 1:
             continue
@@ -366,14 +367,14 @@ def share(usernames, note_id):
 
         # Ensure profile doesn't already have access to note
         rows = db.execute("SELECT * FROM participants WHERE note_id = :note_id AND user_id = :user_id",
-                                note_id=note_id, user_id=user_id)
+                          note_id=note_id, user_id=user_id)
 
         if len(rows) != 0:
             continue
 
         # Share note with profile
         if not db.execute("INSERT INTO participants (note_id, user_id) VALUES (:note_id, :user_id)",
-                    note_id=note_id, user_id=user_id):
+                          note_id=note_id, user_id=user_id):
             return error("failed to share note with user", 503)
 
         # Count how many profiles note was shared with
