@@ -39,20 +39,40 @@ def index():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
 
-        # Ensure usernames was submitted
-        if not request.form.get("share"):
-            return error("must provide usernames", 400)
+        if request.form.get("submit") == "submit":
 
-        # Ensure note ID was submitted
-        if not request.form.get("note_id"):
-            return error("must provide note ID", 400)
+            if not request.form.get("textbox"):
+                return error("must provide text", 400)
 
-        # Call share function to share note
-        count = share(request.form.get("share"), request.form.get("note_id"))
+            note_id = submit(request.form.get("textbox"))
 
-        # Notify user how many profiles note was shared with
-        flash(f'Note shared with {count} other profiles')
-        return redirect("/")
+            if note_id == 0:
+                return error("text length invalid", 409)
+
+            if request.form.get("share"):
+
+                count = share(request.form.get("share"), note_id)
+
+                flash(f'Note shared with {count} other profiles')
+
+            return redirect("/")
+
+        else:
+
+            # Ensure usernames was submitted
+            if not request.form.get("share"):
+                return error("must provide usernames", 400)
+
+            # Ensure note ID was submitted
+            if not request.form.get("submit"):
+                return error("must provide note ID", 400)
+
+            # Call share function to share note
+            count = share(request.form.get("share"), request.form.get("submit"))
+
+            # Notify user how many profiles note was shared with
+            flash(f'Note shared with {count} other profiles')
+            return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
@@ -81,10 +101,10 @@ def index():
         return render_template("index.html", rows=rows, share_data=share_data, id="id", usernames="usernames", shares="shares")
 
 
-@app.route("/submit", methods=["GET", "POST"])
+@app.route("/post", methods=["GET", "POST"])
 @login_required
-def submit():
-    """Submit notes to database"""
+def post():
+    """Write and post notes"""
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
@@ -92,26 +112,19 @@ def submit():
         # Ensure text was submitted
         if not (request.form.get("textbox")):
             return error("must provide text", 400)
-        text = request.form.get("textbox")
 
-        # Ensure text isn't too short or too long
-        if len(text) <= 0 or len(text) > 1000:
-            return error("text length invalid", 403)
+        # Call submit function
+        note_id = submit(request.form.get("textbox"))
 
-        # Insert note into database
-        note_id = db.execute("INSERT INTO notes (author, text, timestamp) VALUES(:user_name, :text, datetime('now', '+2 hours'))",
-                             user_name=session["user_name"], text=text)
-
-        if not note_id:
-            return error("failed to save note to database", 503)
-
-        # Give access to user
-        if not db.execute("INSERT INTO participants (note_id, user_id) VALUES (:note_id, :user_id)",
-                          note_id=note_id, user_id=session["user_id"]):
-            return error("failed to save access to note", 503)
+        # Ensure there was no errors
+        if note_id == 0:
+            return error("text length invalid", 409)
 
         # User wants to share note with other profiles
         if request.form.get("share"):
+
+            if not request.form.get("share"):
+                return error("must provide usernames", 400)
 
             # Call share function
             count = share(request.form.get("share"), note_id)
@@ -123,7 +136,7 @@ def submit():
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        return render_template("submit.html")
+        return render_template("post.html")
 
 
 @app.route("/deletenote")
@@ -138,7 +151,7 @@ def deletenote():
     note_id = int(request.args.get("note_id"))
 
     # Ensure note exists
-    rows = db.execute("SELECT * FROM participants WHERE note_id = :note_id",
+    rows = db.execute("SELECT user_id, author FROM participants JOIN notes ON participants.note_id = notes.id WHERE note_id = :note_id",
                       note_id=note_id)
 
     if len(rows) == 0:
@@ -154,16 +167,25 @@ def deletenote():
     if hasAccess == False:
         return error("cannot delete note without having access to it", 403)
 
-    # Delete access to note
-    if db.execute("DELETE FROM participants WHERE note_id = :note_id AND user_id = :user_id",
-                  note_id=note_id, user_id=session["user_id"]) == 0:
-        return error("failed to delete access to note", 503)
+    # If user is author of note, delete note completely
+    if rows[0]["author"] == session["user_name"]:
 
-    # If user is only profile with access to note, delete note
-    if len(rows) == 1:
+        # Delete all access to note
+        if db.execute("DELETE FROM participants WHERE note_id = :note_id",
+                      note_id=note_id) == 0:
+            return error("failed to delete access to note", 503)
+
+        # Delete note
         if db.execute("DELETE FROM notes WHERE id = :note_id",
                       note_id=note_id) == 0:
             return error("failed to delete note", 503)
+
+    # Else just delete user's access to note
+    else:
+
+        if db.execute("DELETE FROM participants WHERE note_id = :note_id AND user_id = :user_id",
+                    note_id=note_id, user_id=session["user_id"]) == 0:
+            return error("failed to delete access to note", 503)
 
     # Redirect user to homepage
     return redirect("/")
@@ -367,15 +389,30 @@ def logout():
     return redirect("/")
 
 
-def share(usernames, note_id):
-    """Share note with other users"""
+def submit(text):
+    """Submit notes to database"""
 
-    # Ensure all arguments was submitted
-    if not usernames:
+    # Ensure text isn't too short
+    if len(text) <= 0:
         return 0
+
+    # Insert note into database
+    note_id = db.execute("INSERT INTO notes (author, text, timestamp) VALUES(:user_name, :text, datetime('now', '+2 hours'))",
+                            user_name=session["user_name"], text=text)
 
     if not note_id:
-        return 0
+        return error("failed to save note to database", 503)
+
+    # Give access to user
+    if not db.execute("INSERT INTO participants (note_id, user_id) VALUES (:note_id, :user_id)",
+                        note_id=note_id, user_id=session["user_id"]):
+        return error("failed to save access to note", 503)
+
+    return note_id
+
+
+def share(usernames, note_id):
+    """Share note with other users"""
 
     # Seperate usernames by space
     usernames = usernames.split(sep=" ")
