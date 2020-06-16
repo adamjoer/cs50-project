@@ -87,7 +87,7 @@ def index():
 
         # Query database for user's notes
         rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id) ORDER BY timestamp DESC",
-                        id=session["user_id"])
+                          id=session["user_id"])
 
         # Make list of data about sharing
         share_data = list()
@@ -95,7 +95,7 @@ def index():
         # For each note, save number of profiles note is shared with and usernames of profiles note is shared with
         for row in rows:
             shares = db.execute("SELECT username FROM users WHERE id in (SELECT user_id FROM participants WHERE note_id = :note_id)",
-                             note_id=row["id"])
+                                note_id=row["id"])
 
             usernames = ""
             for sharerow in shares:
@@ -194,7 +194,7 @@ def deletenote():
     else:
 
         if db.execute("DELETE FROM participants WHERE note_id = :note_id AND user_id = :user_id",
-                    note_id=note_id, user_id=session["user_id"]) == 0:
+                      note_id=note_id, user_id=session["user_id"]) == 0:
             return error("failed to delete access to note", 503)
 
     # Redirect user to homepage
@@ -323,8 +323,8 @@ def profile():
             rows = db.execute("SELECT hash FROM users WHERE id = :id",
                               id=session["user_id"])
 
-            # Ensure user exists and password is correct
-            if check_password_hash(rows[0]["hash"], request.form.get("oldPassword")):
+            # Ensure old password is correct
+            if not check_password_hash(rows[0]["hash"], request.form.get("oldPassword")):
                 return error("invalid password", 403)
 
             # Update password
@@ -366,6 +366,10 @@ def delete():
             # Delete access to notes authored by profile
             db.execute("DELETE FROM participants WHERE note_id IN (SELECT id FROM notes WHERE author = :user_name)",
                        user_name=session["user_name"])
+
+            # Delete user's access to all other notes
+            db.execute("DELETE FROM participants WHERE user_id = :user_id",
+                       user_id=session["user_id"])
 
             # Delete notes authored by profile
             db.execute("DELETE FROM notes WHERE author = :user_name",
@@ -410,7 +414,7 @@ def submit(text):
 
     # Insert note into database
     note_id = db.execute("INSERT INTO notes (author, text, timestamp) VALUES(:user_name, :text, datetime('now', '+2 hours'))",
-                            user_name=session["user_name"], text=text)
+                         user_name=session["user_name"], text=text)
 
     # Ensure note was submitted
     if not note_id:
@@ -418,7 +422,7 @@ def submit(text):
 
     # Give access to user
     if not db.execute("INSERT INTO participants (note_id, user_id) VALUES (:note_id, :user_id)",
-                        note_id=note_id, user_id=session["user_id"]):
+                      note_id=note_id, user_id=session["user_id"]):
         return error("failed to save access to note", 503)
 
     return note_id
