@@ -39,22 +39,30 @@ def index():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
 
+        # User wants to post a note
         if request.form.get("submit") == "submit":
 
+            # Ensure text was submitted
             if not request.form.get("textbox"):
                 return error("must provide text", 400)
 
+            # Call submit function
             note_id = submit(request.form.get("textbox"))
 
+            # Ensure there were no errors
             if note_id == 0:
                 return error("text length invalid", 409)
 
+            # User wants to share their note with other profiles
             if request.form.get("share"):
 
+                # Call share function
                 count = share(request.form.get("share"), note_id)
 
+                # Notify user how many profiles note was shared with
                 flash(f'Note shared with {count} other profiles')
 
+            # Redirect user to homepage
             return redirect("/")
 
         else:
@@ -81,9 +89,10 @@ def index():
         rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id) ORDER BY timestamp DESC",
                         id=session["user_id"])
 
-        # Make list of data about note
+        # Make list of data about sharing
         share_data = list()
 
+        # For each note, save number of profiles note is shared with and usernames of profiles note is shared with
         for row in rows:
             shares = db.execute("SELECT username FROM users WHERE id in (SELECT user_id FROM participants WHERE note_id = :note_id)",
                              note_id=row["id"])
@@ -116,7 +125,7 @@ def post():
         # Call submit function
         note_id = submit(request.form.get("textbox"))
 
-        # Ensure there was no errors
+        # Ensure there were no errors
         if note_id == 0:
             return error("text length invalid", 409)
 
@@ -132,6 +141,7 @@ def post():
             # Notify user how many profiles note was shared with
             flash(f'Note shared with {count} other profiles')
 
+        # Redirect user to homepage
         return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
@@ -371,6 +381,8 @@ def delete():
 
         # User doesn't want to delete their profile
         else:
+
+            # Redirect user to homepage
             return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
@@ -400,6 +412,7 @@ def submit(text):
     note_id = db.execute("INSERT INTO notes (author, text, timestamp) VALUES(:user_name, :text, datetime('now', '+2 hours'))",
                             user_name=session["user_name"], text=text)
 
+    # Ensure note was submitted
     if not note_id:
         return error("failed to save note to database", 503)
 
