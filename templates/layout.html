@@ -10,7 +10,7 @@
         <title>CS50 Final Project | {% block title %}{% endblock %}</title>
     </head>
     <body>
-        
+
         <!-- Sidebar -->
         <div class="sidenav">
             {% if session.user_id %}
@@ -27,7 +27,7 @@
             <a href="/login">Log in</a>
             {% endif %}
         </div>
-        
+
         {% if get_flashed_messages() %}
         <header>
             <div class="alert alert-primary border text-center" role="alert">
@@ -35,7 +35,7 @@
             </div>
         </header>
         {% endif %}
-        
+
         <!-- Main content -->
         <main class="p-5">
             <div class="main">
