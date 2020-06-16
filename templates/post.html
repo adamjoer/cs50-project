@@ -7,7 +7,7 @@
 
 {% block main %}
     <script src=""></script>
-    <form action="/submit" method="POST">
+    <form action="/post" method="POST">
         <div class="form-group">
             <textarea name="textbox" id="textbox" placeholder="Write your note here" cols="75" rows="10"></textarea>
             <div id="count">
@@ -16,7 +16,7 @@
         </div>
         <div class="form-group">
             <a id="sharebutton" href="#" onclick="shareNote('sharebutton', 'shareform'); return false">Share note</a>
-            <div id="shareform" style="display: none;">
+            <div id="shareform" class="form-usernames">
                 <input autocomplete="off" autofocus class="form-control" name="share" id="share" placeholder="Share your note" type="text" maxlength="50">
                 <label for="share">Write the username of the profile you want to share this note with. If you want to share with several profiles, write each username seperated by a space.</label>
             </div>
