@@ -49,10 +49,6 @@
     width: 300px;
 }
 
-.form-title {
-    margin-top: 3rem;
-}
-
 .timestamp {
     font-style: italic;
 }
@@ -69,8 +65,16 @@
     margin-bottom: 0.5rem;
 }
 
+.form-title {
+    margin-top: 3rem;
+}
+
 .form-share {
     margin-bottom: 0rem;
+}
+
+.form-usernames {
+    display: none;
 }
 
 .card {
@@ -100,6 +104,10 @@ main .form-control
     width: auto;
 }
 
+.sameline {
+    display: inline-block;
+}
+
 /* On smaller screens, where height is less than 450px, change the style of the sidebar (less padding and a smaller font size) */
 @media screen and (max-height: 450px) {
     .sidenav {padding-top: 15px;}
@@ -108,13 +116,4 @@ main .form-control
 
 #confirm {
     margin-top: 2rem;
-}
-
-#yes {
-    display: inline-block;
-    margin-right: 10px;
-}
-
-#no {
-    display: inline-block;
 }
