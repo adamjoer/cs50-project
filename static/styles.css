@@ -57,6 +57,34 @@
     font-style: italic;
 }
 
+.right {
+    float: right;
+}
+
+.left {
+    float: left;
+}
+
+.sharecount {
+    margin-bottom: 0.5rem;
+}
+
+.form-share {
+    margin-bottom: 0rem;
+}
+
+.card {
+    max-width: 50rem;
+}
+
+.card-body {
+    margin-left: 1rem;
+}
+
+.card-body p {
+    margin-bottom: 0rem;
+}
+
 /* Style page content */
 main {
     margin-left: 300px; /* Same as the width of the sidebar */

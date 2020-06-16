@@ -1,5 +1,5 @@
-function deletenote(el) {
-    el.innerHTML = "Delete note?";
-    el.setAttribute("href", `/deletenote?note_id=${el.id}`);
-    el.removeAttribute("onclick");
+function deletenote(element, id) {
+    element.innerHTML = "Are you sure?";
+    element.setAttribute("href", `/deletenote?note_id=${id}`);
+    element.removeAttribute("onclick");
 }

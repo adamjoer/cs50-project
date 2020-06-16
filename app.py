@@ -74,11 +74,11 @@ def index():
                     if len(usernames) != 0:
                         usernames += ", "
                     usernames += sharerow["username"]
-            
+
             share_data.append({"shares":len(shares), "usernames":usernames})
 
         # Render page with user's notes
-        return render_template("index.html", rows=rows, share_data=share_data, id="id")
+        return render_template("index.html", rows=rows, share_data=share_data, id="id", usernames="usernames", shares="shares")
 
 
 @app.route("/submit", methods=["GET", "POST"])
@@ -287,18 +287,18 @@ def profile():
             if request.form.get("oldPassword") == request.form.get("newPassword"):
                 return error("new password must be different from old password", 409)
 
-            # Query database for user id
-            rows = db.execute("SELECT * FROM users WHERE id = :id",
-                            id=session["user_id"])
+            # Query database for user
+            rows = db.execute("SELECT hash FROM users WHERE id = :id",
+                              id=session["user_id"])
 
             # Ensure user exists and password is correct
-            if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("oldPassword")):
+            if check_password_hash(rows[0]["hash"], request.form.get("oldPassword")):
                 return error("invalid password", 403)
 
             # Update password
             if db.execute("UPDATE users SET hash = :hash WHERE id = :id",
-                           hash=generate_password_hash(request.form.get("newPassword"), method='pbkdf2:sha256', salt_length=8),
-                           id=session["user_id"]) == 0:
+                          hash=generate_password_hash(request.form.get("newPassword"), method='pbkdf2:sha256', salt_length=8),
+                          id=session["user_id"]) == 0:
                 return error("failed to update password", 503)
 
             # Redirect user to home page
@@ -341,7 +341,7 @@ def delete():
 
             # Delete profile
             if db.execute("DELETE FROM users WHERE id = :id",
-                           id=session["user_id"]) == 0:
+                          id=session["user_id"]) == 0:
                 return error("failed to delete profile", 503)
 
             # Log out user
