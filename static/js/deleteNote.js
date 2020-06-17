@@ -1,10 +1,11 @@
 function deletenote(element, id, redirect = "") {
     element.innerHTML = "Are you sure?";
-    if (redirect == "") {
-        link = `/deletenote?note_id=${id}`
-    } else {
-        link = `/deletenote?note_id=${id}&redirect=${redirect}`
+
+    link = `/deletenote?note_id=${id}`
+    if (redirect !== "") {
+        link += `&redirect=${redirect}`
     }
+
     element.setAttribute("href", link);
     element.removeAttribute("onclick");
 }
