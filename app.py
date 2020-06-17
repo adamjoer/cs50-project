@@ -104,20 +104,48 @@ def owned():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
 
-        # Ensure usernames was submitted
-        if not request.form.get("share"):
-            return error("must provide usernames", 400)
+        # User wants to post a note
+        if request.form.get("submit") == "submit":
 
-        # Ensure note ID was submitted
-        if not request.form.get("submit"):
-            return error("must provide note ID", 400)
+            # Ensure text was submitted
+            if not request.form.get("textbox"):
+                return error("must provide text", 400)
 
-        # Call share function to share note
-        count = share(request.form.get("share"), request.form.get("submit"))
+            # Call submit function
+            note_id = submit(request.form.get("textbox"))
 
-        # Notify user how many profiles note was shared with
-        flash(f'Note shared with {count} other profiles')
-        return redirect("/owned")
+            # Ensure there were no errors
+            if note_id == 0:
+                return error("text length invalid", 409)
+
+            # User wants to share their note with other profiles
+            if request.form.get("share"):
+
+                # Call share function
+                count = share(request.form.get("share"), note_id)
+
+                # Notify user how many profiles note was shared with
+                flash(f'Note shared with {count} other profiles')
+
+            # Redirect user to homepage
+            return redirect("/owned")
+
+        else:
+
+            # Ensure usernames was submitted
+            if not request.form.get("share"):
+                return error("must provide usernames", 400)
+
+            # Ensure note ID was submitted
+            if not request.form.get("submit"):
+                return error("must provide note ID", 400)
+
+            # Call share function to share note
+            count = share(request.form.get("share"), request.form.get("submit"))
+
+            # Notify user how many profiles note was shared with
+            flash(f'Note shared with {count} other profiles')
+            return redirect("/owned")
 
     else:
 
@@ -140,20 +168,48 @@ def shared():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
 
-        # Ensure usernames was submitted
-        if not request.form.get("share"):
-            return error("must provide usernames", 400)
+        # User wants to post a note
+        if request.form.get("submit") == "submit":
 
-        # Ensure note ID was submitted
-        if not request.form.get("submit"):
-            return error("must provide note ID", 400)
+            # Ensure text was submitted
+            if not request.form.get("textbox"):
+                return error("must provide text", 400)
 
-        # Call share function to share note
-        count = share(request.form.get("share"), request.form.get("submit"))
+            # Call submit function
+            note_id = submit(request.form.get("textbox"))
 
-        # Notify user how many profiles note was shared with
-        flash(f'Note shared with {count} other profiles')
-        return redirect("/shared")
+            # Ensure there were no errors
+            if note_id == 0:
+                return error("text length invalid", 409)
+
+            # User wants to share their note with other profiles
+            if request.form.get("share"):
+
+                # Call share function
+                count = share(request.form.get("share"), note_id)
+
+                # Notify user how many profiles note was shared with
+                flash(f'Note shared with {count} other profiles')
+
+            # Redirect user to homepage
+            return redirect("/shared")
+
+        else:
+
+            # Ensure usernames was submitted
+            if not request.form.get("share"):
+                return error("must provide usernames", 400)
+
+            # Ensure note ID was submitted
+            if not request.form.get("submit"):
+                return error("must provide note ID", 400)
+
+            # Call share function to share note
+            count = share(request.form.get("share"), request.form.get("submit"))
+
+            # Notify user how many profiles note was shared with
+            flash(f'Note shared with {count} other profiles')
+            return redirect("/shared")
 
     else:
 
@@ -166,45 +222,6 @@ def shared():
 
         # Render page with user's notes
         return render_template("shared.html", rows=rows, share_data=share_data, id="id", usernames="usernames", shares="shares")
-
-
-@app.route("/post", methods=["GET", "POST"])
-@login_required
-def post():
-    """Write and post notes"""
-
-    # User reached route via POST (as by submitting a form via POST)
-    if request.method == "POST":
-
-        # Ensure text was submitted
-        if not (request.form.get("textbox")):
-            return error("must provide text", 400)
-
-        # Call submit function
-        note_id = submit(request.form.get("textbox"))
-
-        # Ensure there were no errors
-        if note_id == 0:
-            return error("text length invalid", 409)
-
-        # User wants to share note with other profiles
-        if request.form.get("share"):
-
-            if not request.form.get("share"):
-                return error("must provide usernames", 400)
-
-            # Call share function
-            count = share(request.form.get("share"), note_id)
-
-            # Notify user how many profiles note was shared with
-            flash(f'Note shared with {count} other profiles')
-
-        # Redirect user to homepage
-        return redirect("/")
-
-    # User reached route via GET (as by clicking a link or via redirect)
-    else:
-        return render_template("post.html")
 
 
 @app.route("/deletenote")

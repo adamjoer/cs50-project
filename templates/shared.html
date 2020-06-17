@@ -9,9 +9,33 @@
     <script src="/static/js/deleteNote.js"></script>
     <script src="/static/js/shareNote.js"></script>
     <script src="/static/js/shareUsernames.js"></script>
-    <h1>Shared Notes</h1>
+    <h1>Shared with You</h1>
     <hr>
 
+    <div class="textbox">
+        <form action="/shared" method="POST">
+            <div class="form-group">
+                <textarea name="textbox" id="textbox" placeholder="Write your note here" cols="86" rows="10"></textarea>
+                <div id="count">
+                    <p>1000 characters left</p>
+                </div>
+            </div>
+            <div class="sameline">
+                <button class="btn btn-primary" type="submit" name="submit" id="submit" value="submit">Submit</button>
+            </div>
+            <div class="sameline">
+                <div class="form-group">
+                    <a id="sharebutton" href="#" onclick="shareNote('sharebutton', 'shareform'); return false">Share note</a>
+                    <div id="shareform" class="form-usernames">
+                        <input autocomplete="off" autofocus class="form-control" name="share" id="share" placeholder="Usernames" type="text" maxlength="50">
+                        <!-- <label for="share">Write the username of the profile you want to share this note with. If you want to share with several profiles, write each username seperated by a space.</label> -->
+                    </div>
+                </div>
+            </div>
+        </form>
+        <script src="/static/js/textbox.js"></script>
+        <hr>
+    </div>
 
     {% for i in range(rows|length) %}
         <div class="card border-dark mb-3">

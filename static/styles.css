@@ -59,6 +59,10 @@
     width: 300px;
 }
 
+.textbox {
+    display: none;
+}
+
 .timestamp {
     font-style: italic;
 }

@@ -7,6 +7,7 @@
         <link rel="icon" href="/static/favicon.ico">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
         <link rel="stylesheet" href="/static/styles.css">
+        <script src="/static/js/showTextbox.js"></script>
         <title>NoteCloud | {% block title %}{% endblock %}</title>
     </head>
     <body>
@@ -17,7 +18,7 @@
                 <img src="/static/logo.png">
             </a>
             {% if session.user_id %}
-                <a href="/post">Write Note</a>
+                <a href="#" onclick="showTextbox(this); return false">Write Note</a>
                 <a href="/owned">Your Notes</a>
                 <a href="/shared">Shared with You</a>
                 <div class="id">
