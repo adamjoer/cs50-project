@@ -89,22 +89,8 @@ def index():
         rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id) ORDER BY timestamp DESC",
                           id=session["user_id"])
 
-        # Make list of data about sharing
-        share_data = list()
-
-        # For each note, save number of profiles note is shared with and usernames of profiles note is shared with
-        for row in rows:
-            shares = db.execute("SELECT username FROM users WHERE id in (SELECT user_id FROM participants WHERE note_id = :note_id)",
-                                note_id=row["id"])
-
-            usernames = ""
-            for sharerow in shares:
-                if sharerow["username"] != session["user_name"]:
-                    if len(usernames) != 0:
-                        usernames += ", "
-                    usernames += sharerow["username"]
-
-            share_data.append({"shares":len(shares), "usernames":usernames})
+        # Call share_data function
+        share_data = shareData(rows)
 
         # Render page with user's notes
         return render_template("index.html", rows=rows, share_data=share_data, id="id", usernames="usernames", shares="shares")
@@ -139,22 +125,8 @@ def owned():
         rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE author = :user_name ORDER BY timestamp DESC",
                           user_name=session["user_name"])
 
-        # Make list of data about sharing
-        share_data = list()
-
-        # For each note, save number of profiles note is shared with and usernames of profiles note is shared with
-        for row in rows:
-            shares = db.execute("SELECT username FROM users WHERE id in (SELECT user_id FROM participants WHERE note_id = :note_id)",
-                                note_id=row["id"])
-
-            usernames = ""
-            for sharerow in shares:
-                if sharerow["username"] != session["user_name"]:
-                    if len(usernames) != 0:
-                        usernames += ", "
-                    usernames += sharerow["username"]
-
-            share_data.append({"shares":len(shares), "usernames":usernames})
+        # Call share_data function
+        share_data = shareData(rows)
 
         # Render page with user's notes
         return render_template("owned.html", rows=rows, share_data=share_data, id="id", usernames="usernames", shares="shares")
@@ -189,22 +161,8 @@ def shared():
         rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id) AND author != :user_name ORDER BY timestamp DESC",
                           id=session["user_id"],user_name=session["user_name"])
 
-        # Make list of data about sharing
-        share_data = list()
-
-        # For each note, save number of profiles note is shared with and usernames of profiles note is shared with
-        for row in rows:
-            shares = db.execute("SELECT username FROM users WHERE id in (SELECT user_id FROM participants WHERE note_id = :note_id)",
-                                note_id=row["id"])
-
-            usernames = ""
-            for sharerow in shares:
-                if sharerow["username"] != session["user_name"]:
-                    if len(usernames) != 0:
-                        usernames += ", "
-                    usernames += sharerow["username"]
-
-            share_data.append({"shares":len(shares), "usernames":usernames})
+        # Call share_data function
+        share_data = shareData(rows)
 
         # Render page with user's notes
         return render_template("shared.html", rows=rows, share_data=share_data, id="id", usernames="usernames", shares="shares")
@@ -585,6 +543,29 @@ def share(usernames, note_id):
 
     # Return that count
     return count
+
+
+def shareData(rows):
+    """Get share data for user's notes"""
+
+    # Make list of data about sharing
+    share_data = list()
+
+    # For each note, save number of profiles note is shared with and usernames of profiles note is shared with
+    for row in rows:
+        shares = db.execute("SELECT username FROM users WHERE id in (SELECT user_id FROM participants WHERE note_id = :note_id)",
+                            note_id=row["id"])
+
+        usernames = ""
+        for sharerow in shares:
+            if sharerow["username"] != session["user_name"]:
+                if len(usernames) != 0:
+                    usernames += ", "
+                usernames += sharerow["username"]
+
+        share_data.append({"shares":len(shares), "usernames":usernames})
+
+    return share_data
 
 
 # Check for errors
