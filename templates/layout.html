@@ -13,20 +13,20 @@
 
         <!-- Sidebar -->
         <div class="sidenav">
+            <img src="/static/NoteCloud_logo.png">
             {% if session.user_id %}
-            <a href="/">Home</a>
-            <a href="/post">Write Note</a>
-            <a href="/owned">Your Notes</a>
-            <a href="/shared">Shared Notes</a>
-            <div class="id">
-                <hr>
-                <p><u>Welcome, {{ session.user_name }}</u></p>
-                <a href="/profile">Profile</a>
-                <a href="/logout">Log Out</a>
-            </div>
+                <a href="/post">Write Note</a>
+                <a href="/owned">Your Notes</a>
+                <a href="/shared">Shared with You</a>
+                <div class="id">
+                    <hr>
+                    <p><u>Welcome, {{ session.user_name }}</u></p>
+                    <a href="/profile">Profile</a>
+                    <a href="/logout">Log Out</a>
+                </div>
             {% else %}
-            <a href="/signup">Sign up</a>
-            <a href="/login">Log in</a>
+                <a href="/signup">Sign up</a>
+                <a href="/login">Log in</a>
             {% endif %}
         </div>
 
