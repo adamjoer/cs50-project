@@ -7,13 +7,15 @@
         <link rel="icon" href="/static/favicon.ico">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
         <link rel="stylesheet" href="/static/styles.css">
-        <title>CS50 Final Project | {% block title %}{% endblock %}</title>
+        <title>NoteCloud | {% block title %}{% endblock %}</title>
     </head>
     <body>
 
         <!-- Sidebar -->
         <div class="sidenav">
-            <img src="/static/NoteCloud_logo.png">
+            <a href="/">
+                <img src="/static/logo.png">
+            </a>
             {% if session.user_id %}
                 <a href="/post">Write Note</a>
                 <a href="/owned">Your Notes</a>
