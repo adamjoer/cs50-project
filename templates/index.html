@@ -10,6 +10,7 @@
     <script src="/static/js/shareNote.js"></script>
     <script src="/static/js/shareUsernames.js"></script>
     <h1>Welcome to my final project</h1>
+    <hr>
 
     <form action="/" method="POST">
         <div class="form-group">
@@ -33,7 +34,7 @@
     </form>
     <script src="/static/js/textbox.js"></script>
 
-    <hr style="max-width: 50rem; margin-left: 0rem;">
+    <hr>
 
     {% for i in range(rows|length) %}
         <div class="card border-dark mb-3">
@@ -53,7 +54,6 @@
                             <a id="sharebutton{{ rows[i][id] }}" href="#" onclick="shareNote('sharebutton{{ rows[i][id] }}', 'shareform{{ rows[i][id] }}'); return false">Share</a>
                             <div id="shareform{{ rows[i][id] }}" class="form-usernames">
                                 <input autocomplete="off" autofocus class="form-control" name="share" id="share" placeholder="Usernames" type="text" maxlength="50">
-                                <!-- <label for="share">Write the username of the profile you want to share this note with. If you want to share with several profiles, write each username seperated by a space.</label> -->
                                 <button class="btn btn-primary" type="submit" name="submit" value="{{ rows[i][id] }}">Share</button>
                             </div>
                         </div>

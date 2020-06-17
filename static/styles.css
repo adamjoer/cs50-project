@@ -104,6 +104,11 @@ main .form-control
     width: auto;
 }
 
+main hr {
+    max-width: 50rem;
+    margin-left: 0rem;
+}
+
 .sameline {
     display: inline-block;
 }
