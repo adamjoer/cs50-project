@@ -34,7 +34,7 @@ db = SQL("sqlite:///final.db")
 @app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
-    """Show index of user's notes"""
+    """Show index of all of user's notes"""
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
@@ -110,6 +110,106 @@ def index():
         return render_template("index.html", rows=rows, share_data=share_data, id="id", usernames="usernames", shares="shares")
 
 
+@app.route("/owned", methods=["GET", "POST"])
+@login_required
+def owned():
+    """Show index of user's owned notes"""
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+
+        # Ensure usernames was submitted
+        if not request.form.get("share"):
+            return error("must provide usernames", 400)
+
+        # Ensure note ID was submitted
+        if not request.form.get("submit"):
+            return error("must provide note ID", 400)
+
+        # Call share function to share note
+        count = share(request.form.get("share"), request.form.get("submit"))
+
+        # Notify user how many profiles note was shared with
+        flash(f'Note shared with {count} other profiles')
+        return redirect("/owned")
+
+    else:
+
+        # Query database for user's owned notes
+        rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE author = :user_name ORDER BY timestamp DESC",
+                          user_name=session["user_name"])
+
+        # Make list of data about sharing
+        share_data = list()
+
+        # For each note, save number of profiles note is shared with and usernames of profiles note is shared with
+        for row in rows:
+            shares = db.execute("SELECT username FROM users WHERE id in (SELECT user_id FROM participants WHERE note_id = :note_id)",
+                                note_id=row["id"])
+
+            usernames = ""
+            for sharerow in shares:
+                if sharerow["username"] != session["user_name"]:
+                    if len(usernames) != 0:
+                        usernames += ", "
+                    usernames += sharerow["username"]
+
+            share_data.append({"shares":len(shares), "usernames":usernames})
+
+        # Render page with user's notes
+        return render_template("owned.html", rows=rows, share_data=share_data, id="id", usernames="usernames", shares="shares")
+
+
+@app.route("/shared", methods=["GET", "POST"])
+@login_required
+def shared():
+    """Show index of notes shared with user"""
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+
+        # Ensure usernames was submitted
+        if not request.form.get("share"):
+            return error("must provide usernames", 400)
+
+        # Ensure note ID was submitted
+        if not request.form.get("submit"):
+            return error("must provide note ID", 400)
+
+        # Call share function to share note
+        count = share(request.form.get("share"), request.form.get("submit"))
+
+        # Notify user how many profiles note was shared with
+        flash(f'Note shared with {count} other profiles')
+        return redirect("/shared")
+
+    else:
+
+        # Query database for user's shared notes
+        rows = db.execute("SELECT id, author, text, timestamp FROM notes WHERE id IN (SELECT note_id FROM participants WHERE user_id = :id) AND author != :user_name ORDER BY timestamp DESC",
+                          id=session["user_id"],user_name=session["user_name"])
+
+        # Make list of data about sharing
+        share_data = list()
+
+        # For each note, save number of profiles note is shared with and usernames of profiles note is shared with
+        for row in rows:
+            shares = db.execute("SELECT username FROM users WHERE id in (SELECT user_id FROM participants WHERE note_id = :note_id)",
+                                note_id=row["id"])
+
+            usernames = ""
+            for sharerow in shares:
+                if sharerow["username"] != session["user_name"]:
+                    if len(usernames) != 0:
+                        usernames += ", "
+                    usernames += sharerow["username"]
+
+            share_data.append({"shares":len(shares), "usernames":usernames})
+
+        # Render page with user's notes
+        return render_template("shared.html", rows=rows, share_data=share_data, id="id", usernames="usernames", shares="shares")
+
+
 @app.route("/post", methods=["GET", "POST"])
 @login_required
 def post():
@@ -158,6 +258,18 @@ def deletenote():
     if not request.args.get("note_id"):
         return error("must provide note ID", 400)
 
+    # If redirect argument wasn't submitted, redirect to home route
+    if not request.args.get("redirect"):
+        origin = "/"
+
+    # If it was submitted ensure it is valid and save it
+    else:
+
+        if request.args.get("redirect") not in ["owned", "shared"]:
+            return error("invalid redirect", 400)
+
+        origin = "/" + request.args.get("redirect")
+
     note_id = int(request.args.get("note_id"))
 
     # Ensure note exists
@@ -197,8 +309,8 @@ def deletenote():
                       note_id=note_id, user_id=session["user_id"]) == 0:
             return error("failed to delete access to note", 503)
 
-    # Redirect user to homepage
-    return redirect("/")
+    # Redirect user to original route
+    return redirect(origin)
 
 
 @app.route("/signup", methods=["GET", "POST"])

@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Shared Notes
+{% endblock %}
+
+{% block main %}
+    <script src="/static/js/moment.min.js"></script>
+    <script src="/static/js/deleteNote.js"></script>
+    <script src="/static/js/shareNote.js"></script>
+    <script src="/static/js/shareUsernames.js"></script>
+    <h1>Shared Notes</h1>
+    <hr>
+
+
+    {% for i in range(rows|length) %}
+        <div class="card border-dark mb-3">
+            <div class="card-header"><span class="left"><u>{{ rows[i]["author"] }}</u></span><span class="right timestamp" title="{{ rows[i]['timestamp'] }}" id="time{{ rows[i][id] }}">{{ rows[i]["timestamp"] }}</span></div>
+            <div class="card-body text-dark">
+                {% for j in range(rows[i]["text"].splitlines()|length) %}
+                    <p class="card-text">{{ rows[i]["text"].splitlines()[j] }}&nbsp;</p>
+                {% endfor %}
+            </div>
+            <div class="card-footer bg-transparent">
+                {% if share_data[i]["shares"] != 1 %}
+                    <p onmouseover="showUsernames(this, '{{ share_data[i][usernames] }}')" onmouseout="hideUsernames(this, '{{ share_data[i][shares] - 1 }}')" class="sharecount">Shared with {{ share_data[i]["shares"] - 1 }} other profile(s)</p>
+                {% endif %}
+                    <span class="left">
+                    <form action="/shared" method="POST">
+                        <div class="form-group form-share">
+                            <a id="sharebutton{{ rows[i][id] }}" href="#" onclick="shareNote('sharebutton{{ rows[i][id] }}', 'shareform{{ rows[i][id] }}'); return false">Share</a>
+                            <div id="shareform{{ rows[i][id] }}" class="form-usernames">
+                                <input autocomplete="off" autofocus class="form-control" name="share" id="share" placeholder="Usernames" type="text" maxlength="50">
+                                <button class="btn btn-primary" type="submit" name="submit" value="{{ rows[i][id] }}">Share</button>
+                            </div>
+                        </div>
+                    </form>
+                </span>
+                <span class="right">
+                    <a href="#" onclick="deletenote(this, '{{ rows[i][id] }}', 'shared'); return false">Delete</a>
+                </span>
+            </div>
+        </div>
+
+        <script>
+            document.getElementById("time{{ rows[i][id] }}").innerHTML = moment("{{ rows[i]['timestamp'] }}").fromNow();
+        </script>
+    {% endfor %}
+
+{% endblock %}
