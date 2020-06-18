@@ -25,7 +25,8 @@
     <h3 class="form-title" style="margin-bottom: 0rem;">Delete Profile</h3>
     <form action="/profile" method="POST">
         <div class="form-group">
-            <input type="checkbox" name="confirm" id="confirm">
+            <p>Once you delete your profile, there is no going back. Please be certain.</p>
+            <input type="checkbox" name="confirm" id="confirm" style="margin-top: 0rem;">
             <label for="confirm">I want to delete my profile from this website.</label>
         </div>
         <button class="btn btn-danger" name="submit" value="delete" type="submit" id="delete">Delete Profile</button>

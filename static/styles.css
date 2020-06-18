@@ -6,15 +6,13 @@
     z-index: 1; /* Stay on top */
     top: 0; /* Stay at the top */
     left: 0;
-    background-color: #007bff; /* Black */
+    background-color: #007bff;
     overflow-x: hidden; /* Disable horizontal scroll */
-    padding-top: 20px;
 }
 
 .sidenav img {
     display: block;
-    margin-left: auto;
-    margin-right: auto;
+    margin: 1rem auto 1rem auto;
 }
 
 /* The navigation menu links */
@@ -29,14 +27,16 @@
 
 /* box-shadow for elements!!!!! */
 
-
 .sidenav p {
     padding: 6px 8px 6px 16px;
     margin-bottom: 0rem;
     text-decoration: none;
     font-size: 25px;
     color: #ffffff;
-    display: block;
+}
+
+#logo {
+    padding: 0px 0px 0px 0px;
 }
 
 /* When you mouse over the navigation links, change their color */
@@ -44,10 +44,10 @@
     color: #cecece;
 }
 
-/* .sidenav hr {
-    border: none;
-    height: 10px;
-} */
+aside {
+    position: relative;
+    display: block;
+}
 
 .sidenav hr {
     border-top: 1px solid white;
@@ -105,7 +105,7 @@
 
 /* Style page content */
 main {
-    margin-left: 300px; /* Same as the width of the sidebar */
+    margin-left: 500px;
     padding: 0px 10px;
 }
 
