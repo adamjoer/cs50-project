@@ -47,20 +47,22 @@ def index():
                 return error("must provide text", 400)
 
             # Call submit function
-            note_id = submit(request.form.get("textbox"))
+            submitStatus = submit(request.form.get("textbox"))
 
-            # Ensure there were no errors
-            if note_id == 0:
-                return error("text length invalid", 409)
+            if submitStatus[1] != 200:
+                return error(submitStatus[0], submitStatus[1])
 
             # User wants to share their note with other profiles
-            if request.form.get("share"):
+            elif request.form.get("share"):
 
                 # Call share function
-                count = share(request.form.get("share"), note_id)
+                shareStatus = share(request.form.get("share"), submitStatus[0])
+
+                if shareStatus[1] != 200:
+                    return error(shareStatus[0], shareStatus[1])
 
                 # Notify user how many profiles note was shared with
-                flash(f'Note shared with {count} other profiles')
+                flash(f'Note shared with {shareStatus[0]} other profiles')
 
             # Redirect user to homepage
             return redirect("/")
@@ -76,10 +78,13 @@ def index():
                 return error("must provide note ID", 400)
 
             # Call share function to share note
-            count = share(request.form.get("share"), request.form.get("submit"))
+            shareStatus = share(request.form.get("share"), request.form.get("submit"))
+
+            if shareStatus[1] != 200:
+                return error(shareStatus[0], shareStatus[1])
 
             # Notify user how many profiles note was shared with
-            flash(f'Note shared with {count} other profiles')
+            flash(f'Note shared with {shareStatus[0]} other profiles')
             return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
@@ -112,20 +117,22 @@ def owned():
                 return error("must provide text", 400)
 
             # Call submit function
-            note_id = submit(request.form.get("textbox"))
+            submitStatus = submit(request.form.get("textbox"))
 
-            # Ensure there were no errors
-            if note_id == 0:
-                return error("text length invalid", 409)
+            if submitStatus[1] != 200:
+                return error(submitStatus[0], submitStatus[1])
 
             # User wants to share their note with other profiles
-            if request.form.get("share"):
+            elif request.form.get("share"):
 
                 # Call share function
-                count = share(request.form.get("share"), note_id)
+                shareStatus = share(request.form.get("share"), submitStatus[0])
+
+                if shareStatus[1] != 200:
+                    return error(shareStatus[0], shareStatus[1])
 
                 # Notify user how many profiles note was shared with
-                flash(f'Note shared with {count} other profiles')
+                flash(f'Note shared with {shareStatus[0]} other profiles')
 
             # Redirect user to homepage
             return redirect("/owned")
@@ -141,10 +148,13 @@ def owned():
                 return error("must provide note ID", 400)
 
             # Call share function to share note
-            count = share(request.form.get("share"), request.form.get("submit"))
+            shareStatus = share(request.form.get("share"), request.form.get("submit"))
+
+            if shareStatus[1] != 200:
+                return error(shareStatus[0], shareStatus[1])
 
             # Notify user how many profiles note was shared with
-            flash(f'Note shared with {count} other profiles')
+            flash(f'Note shared with {shareStatus[0]} other profiles')
             return redirect("/owned")
 
     else:
@@ -176,20 +186,22 @@ def shared():
                 return error("must provide text", 400)
 
             # Call submit function
-            note_id = submit(request.form.get("textbox"))
+            submitStatus = submit(request.form.get("textbox"))
 
-            # Ensure there were no errors
-            if note_id == 0:
-                return error("text length invalid", 409)
+            if submitStatus[1] != 200:
+                return error(submitStatus[0], submitStatus[1])
 
             # User wants to share their note with other profiles
-            if request.form.get("share"):
+            elif request.form.get("share"):
 
                 # Call share function
-                count = share(request.form.get("share"), note_id)
+                shareStatus = share(request.form.get("share"), submitStatus[0])
+
+                if shareStatus[1] != 200:
+                    return error(shareStatus[0], shareStatus[1])
 
                 # Notify user how many profiles note was shared with
-                flash(f'Note shared with {count} other profiles')
+                flash(f'Note shared with {shareStatus[0]} other profiles')
 
             # Redirect user to homepage
             return redirect("/shared")
@@ -205,10 +217,13 @@ def shared():
                 return error("must provide note ID", 400)
 
             # Call share function to share note
-            count = share(request.form.get("share"), request.form.get("submit"))
+            shareStatus = share(request.form.get("share"), request.form.get("submit"))
+
+            if shareStatus[1] != 200:
+                return error(shareStatus[0], shareStatus[1])
 
             # Notify user how many profiles note was shared with
-            flash(f'Note shared with {count} other profiles')
+            flash(f'Note shared with {shareStatus[0]} other profiles')
             return redirect("/shared")
 
     else:
@@ -496,8 +511,8 @@ def submit(text):
     """Submit notes to database"""
 
     # Ensure text isn't too short
-    if len(text) <= 0:
-        return 0
+    if len(text) - text.count("\r") > 1000:
+        return "text length invalid", 403
 
     # Insert note into database
     note_id = db.execute("INSERT INTO notes (author, text, timestamp) VALUES(:user_name, :text, datetime('now', '+2 hours'))",
@@ -505,25 +520,22 @@ def submit(text):
 
     # Ensure note was submitted
     if not note_id:
-        return error("failed to save note to database", 503)
+        return "failed to save note to database", 503
 
     # Give access to user
     if not db.execute("INSERT INTO participants (note_id, user_id) VALUES (:note_id, :user_id)",
                       note_id=note_id, user_id=session["user_id"]):
-        return error("failed to save access to note", 503)
+        return "failed to save access to note", 503
 
-    return note_id
+    return note_id, 200
 
 
 def share(usernames, note_id):
     """Share note with other users"""
 
-    # Seperate usernames by space
-    usernames = usernames.split(sep=" ")
-
     # Iterate over usernames
     count = 0
-    for username in usernames:
+    for username in usernames.split():
 
         # Ensure username has valid length
         if len(username) < 4 or len(username) > 40:
@@ -553,13 +565,13 @@ def share(usernames, note_id):
         # Share note with profile
         if not db.execute("INSERT INTO participants (note_id, user_id) VALUES (:note_id, :user_id)",
                           note_id=note_id, user_id=user_id):
-            return error("failed to share note with user", 503)
+            return "failed to share note with user", 503
 
         # Count how many profiles note was shared with
         count += 1
 
     # Return that count
-    return count
+    return count, 200
 
 
 def shareData(rows):
